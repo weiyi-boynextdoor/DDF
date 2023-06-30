@@ -1,7 +1,11 @@
+
 #include <iostream>
+
+#include "application.h"
 
 int main()
 {
-    std::cout << "xxxx\n";
+    DDF::Application app(1080, 720);
+    app.Run();
     return 0;
 }
