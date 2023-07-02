@@ -22,10 +22,10 @@ public:
     void Run();
 
 private:
-    uint32_t width_  = 1080;
-    uint32_t height_ = 720;
+    uint32_t width_{1080};
+    uint32_t height_{720};
 
-    GLFWwindow* window_   = nullptr;
+    GLFWwindow* window_{nullptr};
     std::unique_ptr<VulkanRHI> rhi_;
 
     void InitWindow();
