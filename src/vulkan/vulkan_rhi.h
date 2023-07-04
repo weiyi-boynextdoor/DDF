@@ -16,6 +16,12 @@ struct QueueFamilyIndices {
     }
 };
 
+struct SwapChainSupportDetails {
+    VkSurfaceCapabilitiesKHR capabilities;
+    std::vector<VkSurfaceFormatKHR> formats;
+    std::vector<VkPresentModeKHR> presentModes;
+};
+
 class VulkanRHI {
 public:
     VulkanRHI();
@@ -32,11 +38,17 @@ private:
     void CreateSurface();
     void PickPhysicalDevice();
     void CreateLogicDevice();
+    void CreateSwapChain();
 
     std::vector<const char*> GetRequiredExtensions() const;
 
     QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
+    SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device);
     bool IsDeviceSuitable(VkPhysicalDevice device);
+
+    VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+    VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+    VkExtent2D VulkanRHI::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
 private:
     GLFWwindow* window_{nullptr};
@@ -49,6 +61,11 @@ private:
 
     VkQueue graphics_queue_{nullptr};
     VkQueue present_queue_{nullptr};
+
+    VkSwapchainKHR swap_chain_{nullptr};
+    std::vector<VkImage> swap_chain_images_;
+    VkFormat swap_chain_image_format_;
+    VkExtent2D swap_chain_extent_;
 
     bool enable_validation_layers_{false};
 };
