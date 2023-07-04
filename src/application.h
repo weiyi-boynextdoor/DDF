@@ -19,7 +19,7 @@ public:
 
     ~Application() {}
 
-    void Run();
+    void run();
 
 private:
     uint32_t width_{1080};
@@ -28,15 +28,15 @@ private:
     GLFWwindow* window_{nullptr};
     std::unique_ptr<VulkanRHI> rhi_;
 
-    void InitWindow();
+    void initWindow();
 
-    void InitVulkan();
+    void initVulkan();
 
-    void MainLoop();
+    void mainLoop();
 
-    void CleanUp();
+    void cleanUp();
 
-    void CreateInstance();
+    void createInstance();
 };
 
 } // namespace DDF

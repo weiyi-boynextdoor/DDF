@@ -6,6 +6,6 @@
 int main()
 {
     DDF::Application app(1080, 720);
-    app.Run();
+    app.run();
     return 0;
 }

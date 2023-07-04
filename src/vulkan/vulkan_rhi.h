@@ -11,7 +11,7 @@ struct QueueFamilyIndices {
     std::optional<uint32_t> graphics_family;
     std::optional<uint32_t> present_family;
 
-    bool IsComplete() {
+    bool isComplete() {
         return graphics_family.has_value() && present_family.has_value();
     }
 };
@@ -28,27 +28,27 @@ public:
 
     ~VulkanRHI() = default;
 
-    void Init(GLFWwindow* window);
+    void init(GLFWwindow* window);
 
-    void Destroy();
+    void destroy();
 
 private:
-    void CreateInstance();
-    void SetupDebugMessenger();
-    void CreateSurface();
-    void PickPhysicalDevice();
-    void CreateLogicDevice();
-    void CreateSwapChain();
+    void createInstance();
+    void setupDebugMessenger();
+    void createSurface();
+    void pickPhysicalDevice();
+    void createLogicDevice();
+    void createSwapChain();
 
-    std::vector<const char*> GetRequiredExtensions() const;
+    std::vector<const char*> getRequiredExtensions() const;
 
-    QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
-    SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device);
-    bool IsDeviceSuitable(VkPhysicalDevice device);
+    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+    SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+    bool isDeviceSuitable(VkPhysicalDevice device);
 
-    VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-    VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-    VkExtent2D VulkanRHI::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+    VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+    VkExtent2D VulkanRHI::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
 private:
     GLFWwindow* window_{nullptr};
@@ -63,9 +63,9 @@ private:
     VkQueue present_queue_{nullptr};
 
     VkSwapchainKHR swap_chain_{nullptr};
-    std::vector<VkImage> swap_chain_images_;
-    VkFormat swap_chain_image_format_;
-    VkExtent2D swap_chain_extent_;
+    std::vector<VkImage> swap_chain_images_{};
+    VkFormat swap_chain_image_format_{};
+    VkExtent2D swap_chain_extent_{};
 
     bool enable_validation_layers_{false};
 };

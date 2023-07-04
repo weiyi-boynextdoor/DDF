@@ -4,14 +4,14 @@ namespace DDF
 {
 Application::Application(uint32_t width, uint32_t height) : width_(width), height_(height) {}
 
-void Application::Run() {
-    InitWindow();
-    InitVulkan();
-    MainLoop();
-    CleanUp();
+void Application::run() {
+    initWindow();
+    initVulkan();
+    mainLoop();
+    cleanUp();
 }
 
-void Application::InitWindow() {
+void Application::initWindow() {
     glfwInit();
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -20,19 +20,19 @@ void Application::InitWindow() {
     window_ = glfwCreateWindow(width_, height_, "Vulkan", nullptr, nullptr);
 }
 
-void Application::InitVulkan() {
+void Application::initVulkan() {
     rhi_ = std::make_unique<VulkanRHI>();
-    rhi_->Init(window_);
+    rhi_->init(window_);
 }
 
-void Application::MainLoop() {
+void Application::mainLoop() {
     while (!glfwWindowShouldClose(window_)) {
         glfwPollEvents();
     }
 }
 
-void Application::CleanUp() {
-    rhi_->Destroy();
+void Application::cleanUp() {
+    rhi_->destroy();
     rhi_.reset();
 
     glfwDestroyWindow(window_);
