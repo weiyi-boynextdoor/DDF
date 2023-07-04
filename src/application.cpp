@@ -22,7 +22,7 @@ void Application::InitWindow() {
 
 void Application::InitVulkan() {
     rhi_ = std::make_unique<VulkanRHI>();
-    rhi_->Init();
+    rhi_->Init(window_);
 }
 
 void Application::MainLoop() {

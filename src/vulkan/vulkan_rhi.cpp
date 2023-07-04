@@ -1,11 +1,8 @@
 #include "vulkan_rhi.h"
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-
 #include <algorithm>
 #include <iostream>
-#include <optional>
+#include <set>
 #include <stdexcept>
 
 namespace DDF {
@@ -73,14 +70,6 @@ static void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT&
     createInfo.pfnUserCallback = DebugCallback;
 }
 
-struct QueueFamilyIndices {
-    std::optional<uint32_t> graphics_family;
-
-    bool IsComplete() {
-        return graphics_family.has_value();
-    }
-};
-
 VulkanRHI::VulkanRHI() {
 #ifndef NDEBUG
     enable_validation_layers_ = true;
@@ -89,9 +78,12 @@ VulkanRHI::VulkanRHI() {
 #endif
 }
 
-void VulkanRHI::Init() {
+void VulkanRHI::Init(GLFWwindow* window) {
+    window_ = window;
+
     CreateInstance();
     SetupDebugMessenger();
+    CreateSurface();
     PickPhysicalDevice();
     CreateLogicDevice();
 }
@@ -173,7 +165,7 @@ static int RateDeviceSuitability(VkPhysicalDeviceType device_type) {
     }
 }
 
-QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device) {
+QueueFamilyIndices VulkanRHI::FindQueueFamilies(VkPhysicalDevice device) {
     QueueFamilyIndices indices;
 
     uint32_t queueFamilyCount = 0;
@@ -187,6 +179,14 @@ QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device) {
         if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
             indices.graphics_family = i;
         }
+
+        VkBool32 presentSupport = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface_, &presentSupport);
+
+        if (presentSupport) {
+            indices.present_family = i;
+        }
+
         if (indices.IsComplete()) {
             break;
         }
@@ -196,7 +196,7 @@ QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device) {
     return indices;
 }
 
-bool IsDeviceSuitable(VkPhysicalDevice device) {
+bool VulkanRHI::IsDeviceSuitable(VkPhysicalDevice device) {
     return FindQueueFamilies(device).IsComplete();
 }
 
@@ -235,20 +235,26 @@ void VulkanRHI::PickPhysicalDevice() {
 void VulkanRHI::CreateLogicDevice() {
     QueueFamilyIndices indices = FindQueueFamilies(physical_device_);
 
-    VkDeviceQueueCreateInfo queueCreateInfo{};
-    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.queueFamilyIndex = indices.graphics_family.value();
-    queueCreateInfo.queueCount = 1;
+    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    std::set<uint32_t> uniqueQueueFamilies = {indices.graphics_family.value(), indices.present_family.value()};
+
     float queuePriority = 1.0f;
-    queueCreateInfo.pQueuePriorities = &queuePriority;
+    for (uint32_t queueFamily : uniqueQueueFamilies) {
+        VkDeviceQueueCreateInfo queueCreateInfo{};
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = queueFamily;
+        queueCreateInfo.queueCount = 1;
+        queueCreateInfo.pQueuePriorities = &queuePriority;
+        queueCreateInfos.push_back(queueCreateInfo);
+    }
 
     VkPhysicalDeviceFeatures deviceFeatures{};
 
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 
-    createInfo.pQueueCreateInfos = &queueCreateInfo;
-    createInfo.queueCreateInfoCount = 1;
+    createInfo.pQueueCreateInfos = queueCreateInfos.data();
+    createInfo.queueCreateInfoCount = queueCreateInfos.size();
 
     createInfo.pEnabledFeatures = &deviceFeatures;
 
@@ -259,10 +265,18 @@ void VulkanRHI::CreateLogicDevice() {
     }
 
     vkGetDeviceQueue(device_, indices.graphics_family.value(), 0, &graphics_queue_);
+    vkGetDeviceQueue(device_, indices.present_family.value(), 0, &present_queue_);
+}
+
+void VulkanRHI::CreateSurface() {
+    if (glfwCreateWindowSurface(instance_, window_, nullptr, &surface_) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create window surface!");
+    }
 }
 
 void VulkanRHI::Destroy() {
     vkDestroyDevice(device_, nullptr);
+    vkDestroySurfaceKHR(instance_, surface_, nullptr);
 
     if (enable_validation_layers_) {
         DestroyDebugUtilsMessengerEXT(instance_, debug_messenger_, nullptr);
