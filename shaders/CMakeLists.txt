@@ -23,6 +23,4 @@ foreach(SHADER ${SHADERS})
     )
 endforeach()
 
-message(STATUS "xxxx ${SPVS}")
-
 add_custom_target(${TARGET} DEPENDS ${SPVS} SOURCES ${SHADERS})

@@ -2,12 +2,23 @@
 
 namespace DDF
 {
-Application::Application(uint32_t width, uint32_t height) : width_(width), height_(height) {}
+Application::Application(uint32_t width, uint32_t height) : width_(width), height_(height) {
+    engine_ = std::make_unique<Engine>();
+}
 
-void Application::run() {
+void Application::run(SetupCallback setup, CleanupCallback cleanup) {
     initWindow();
-    initVulkan();
+    engine_->init(window_);
+
+    if (setup) {
+        setup(engine_.get());
+    }
+
     mainLoop();
+
+    if (cleanup) {
+        cleanup(engine_.get());
+    }
     cleanUp();
 }
 
@@ -20,20 +31,15 @@ void Application::initWindow() {
     window_ = glfwCreateWindow(width_, height_, "Vulkan", nullptr, nullptr);
 }
 
-void Application::initVulkan() {
-    rhi_ = std::make_unique<VulkanRHI>();
-    rhi_->init(window_);
-}
-
 void Application::mainLoop() {
     while (!glfwWindowShouldClose(window_)) {
         glfwPollEvents();
+        engine_->update();
     }
 }
 
 void Application::cleanUp() {
-    rhi_->destroy();
-    rhi_.reset();
+    engine_.reset();
 
     glfwDestroyWindow(window_);
 

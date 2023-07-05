@@ -4,33 +4,35 @@
 #include <GLFW/glfw3.h>
 
 #include <cstdlib>
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
 
-#include "vulkan/vulkan_rhi.h"
+#include "engine.h"
 
 namespace DDF
 {
 
 class Application {
 public:
+    using SetupCallback = std::function<void(Engine*)>;
+    using CleanupCallback = std::function<void(Engine*)>;
+
     Application(uint32_t width, uint32_t height);
 
     ~Application() {}
 
-    void run();
+    void run(SetupCallback setup = nullptr, CleanupCallback cleanup = nullptr);
 
 private:
     uint32_t width_{1080};
     uint32_t height_{720};
 
     GLFWwindow* window_{nullptr};
-    std::unique_ptr<VulkanRHI> rhi_;
+    std::unique_ptr<Engine> engine_;
 
     void initWindow();
-
-    void initVulkan();
 
     void mainLoop();
 

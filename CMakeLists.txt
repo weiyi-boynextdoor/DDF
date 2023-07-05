@@ -8,5 +8,6 @@ find_package(Vulkan REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_subdirectory(shader)
+add_subdirectory(shaders)
 add_subdirectory(src)
+add_subdirectory(samples)
