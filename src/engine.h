@@ -16,6 +16,10 @@ public:
     void update() {
     }
 
+    VulkanRHI* getRHI() const {
+        return rhi_.get();
+    }
+
 private:
     std::unique_ptr<VulkanRHI> rhi_;
 };

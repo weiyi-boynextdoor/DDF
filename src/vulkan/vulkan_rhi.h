@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 
 #include <optional>
+#include <string>
 #include <vector>
 
 namespace DDF {
@@ -31,6 +32,9 @@ public:
     void init(GLFWwindow* window);
 
     void destroy();
+
+    VkShaderModule createShaderModule(const std::string& code);
+    void destroyShaderModule(VkShaderModule shader);
 
 private:
     void createInstance();
