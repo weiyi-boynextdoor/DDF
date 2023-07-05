@@ -90,6 +90,7 @@ void VulkanRHI::init(GLFWwindow* window) {
     createLogicDevice();
     createSwapChain();
     createImageViews();
+    createGraphicsPipeline();
 }
 
 void VulkanRHI::createInstance() {
@@ -442,6 +443,9 @@ void VulkanRHI::createImageViews() {
             throw std::runtime_error("failed to create image views!");
         }
     }
+}
+
+void VulkanRHI::createGraphicsPipeline() {
 }
 
 void VulkanRHI::destroy() {

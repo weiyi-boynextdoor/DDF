@@ -40,6 +40,7 @@ private:
     void createLogicDevice();
     void createSwapChain();
     void createImageViews();
+    void createGraphicsPipeline();
 
     std::vector<const char*> getRequiredExtensions() const;
 
