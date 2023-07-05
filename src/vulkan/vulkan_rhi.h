@@ -39,6 +39,7 @@ private:
     void pickPhysicalDevice();
     void createLogicDevice();
     void createSwapChain();
+    void createImageViews();
 
     std::vector<const char*> getRequiredExtensions() const;
 
@@ -62,10 +63,11 @@ private:
     VkQueue graphics_queue_{nullptr};
     VkQueue present_queue_{nullptr};
 
-    VkSwapchainKHR swap_chain_{nullptr};
-    std::vector<VkImage> swap_chain_images_{};
-    VkFormat swap_chain_image_format_{};
-    VkExtent2D swap_chain_extent_{};
+    VkSwapchainKHR swapchain_{nullptr};
+    std::vector<VkImage> swapchain_images_{};
+    VkFormat swapchain_image_format_{};
+    VkExtent2D swapchain_extent_{};
+    std::vector<VkImageView> swapchain_imageviews_;
 
     bool enable_validation_layers_{false};
 };

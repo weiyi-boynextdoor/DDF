@@ -89,6 +89,7 @@ void VulkanRHI::init(GLFWwindow* window) {
     pickPhysicalDevice();
     createLogicDevice();
     createSwapChain();
+    createImageViews();
 }
 
 void VulkanRHI::createInstance() {
@@ -363,16 +364,16 @@ void VulkanRHI::createSwapChain() {
 
     createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-    if (vkCreateSwapchainKHR(device_, &createInfo, nullptr, &swap_chain_) != VK_SUCCESS) {
+    if (vkCreateSwapchainKHR(device_, &createInfo, nullptr, &swapchain_) != VK_SUCCESS) {
         throw std::runtime_error("failed to create swap chain!");
     }
 
-    vkGetSwapchainImagesKHR(device_, swap_chain_, &imageCount, nullptr);
-    swap_chain_images_.resize(imageCount);
-    vkGetSwapchainImagesKHR(device_, swap_chain_, &imageCount, swap_chain_images_.data());
+    vkGetSwapchainImagesKHR(device_, swapchain_, &imageCount, nullptr);
+    swapchain_images_.resize(imageCount);
+    vkGetSwapchainImagesKHR(device_, swapchain_, &imageCount, swapchain_images_.data());
 
-    swap_chain_image_format_ = surfaceFormat.format;
-    swap_chain_extent_ = extent;
+    swapchain_image_format_ = surfaceFormat.format;
+    swapchain_extent_ = extent;
 }
 
 VkSurfaceFormatKHR VulkanRHI::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
@@ -418,8 +419,37 @@ void VulkanRHI::createSurface() {
     }
 }
 
+void VulkanRHI::createImageViews() {
+    swapchain_imageviews_.resize(swapchain_images_.size());
+
+    for (size_t i = 0; i < swapchain_images_.size(); i++) {
+        VkImageViewCreateInfo createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        createInfo.image = swapchain_images_[i];
+        createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        createInfo.format = swapchain_image_format_;
+        createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        createInfo.subresourceRange.baseMipLevel = 0;
+        createInfo.subresourceRange.levelCount = 1;
+        createInfo.subresourceRange.baseArrayLayer = 0;
+        createInfo.subresourceRange.layerCount = 1;
+
+        if (vkCreateImageView(device_, &createInfo, nullptr, &swapchain_imageviews_[i]) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create image views!");
+        }
+    }
+}
+
 void VulkanRHI::destroy() {
-    vkDestroySwapchainKHR(device_, swap_chain_, nullptr);
+    for (auto imageview : swapchain_imageviews_) {
+        vkDestroyImageView(device_, imageview, nullptr);
+    }
+
+    vkDestroySwapchainKHR(device_, swapchain_, nullptr);
     vkDestroyDevice(device_, nullptr);
     vkDestroySurfaceKHR(instance_, surface_, nullptr);
 
