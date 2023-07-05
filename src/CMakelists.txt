@@ -1,7 +1,7 @@
 set(TARGET DDF)
 
-file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS ./*.h)
-file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS ./*.cpp)
+file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS "./*.h")
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "./*.cpp")
 
 add_executable(${TARGET} ${SOURCES} ${HEADERS})
 target_link_libraries(${TARGET} Vulkan::Vulkan glfw)
