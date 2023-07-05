@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include "vulkan_pipeline.h"
+
 namespace DDF {
 struct QueueFamilyIndices {
     std::optional<uint32_t> graphics_family;
@@ -36,6 +38,8 @@ public:
     VkShaderModule createShaderModule(const std::string& code);
     void destroyShaderModule(VkShaderModule shader);
 
+    VkPipeline createGraphicsPipeline(const PipelineCreateInfo& create_info);
+
 private:
     void createInstance();
     void setupDebugMessenger();
@@ -44,7 +48,6 @@ private:
     void createLogicDevice();
     void createSwapChain();
     void createImageViews();
-    void createGraphicsPipeline();
 
     std::vector<const char*> getRequiredExtensions() const;
 
