@@ -4,11 +4,12 @@
 
 #include <string>
 
+#include "vulkan_struct.h"
+
 namespace DDF {
 class VulkanPipeline {
 public:
-    VulkanPipeline() = default;
-    VulkanPipeline(VkDevice device, VkPipeline pipeline, VkPipelineLayout layout);
+    VulkanPipeline(VkDevice device, const PipelineCreateInfo& create_info);
 
     VulkanPipeline(const VulkanPipeline&) = delete;
     VulkanPipeline(VulkanPipeline&&) = delete;

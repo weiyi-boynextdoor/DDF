@@ -41,7 +41,6 @@ public:
         return device_;
     }
 
-    VkShaderModule createShaderModule(const std::string& code);
     void destroyShaderModule(VkShaderModule shader);
 
     std::unique_ptr<VulkanPipeline> createGraphicsPipeline(const PipelineCreateInfo& create_info);
