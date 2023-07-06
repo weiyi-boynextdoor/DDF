@@ -41,11 +41,17 @@ public:
         return device_;
     }
 
-    void destroyShaderModule(VkShaderModule shader);
+    uint32_t getSwapChainSize() const {
+        return (uint32_t)swapchain_images_.size();
+    }
+
+    SwapChainDesc getSwapChainDesc() const;
 
     std::unique_ptr<VulkanPipeline> createGraphicsPipeline(const PipelineCreateInfo& create_info);
 
     VkRenderPass createRenderPass(const RenderPassCreateInfo& create_info);
+
+    VkFramebuffer createFrameBuffer(const FrameBufferCreateInfo& create_info);
 
 private:
     void createInstance();
@@ -64,7 +70,7 @@ private:
 
     VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
     VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-    VkExtent2D VulkanRHI::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
 private:
     GLFWwindow* window_{nullptr};

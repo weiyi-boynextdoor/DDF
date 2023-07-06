@@ -482,8 +482,29 @@ VkRenderPass VulkanRHI::createRenderPass(const RenderPassCreateInfo& create_info
     return pass;
 }
 
-void VulkanRHI::destroyShaderModule(VkShaderModule shader) {
-    vkDestroyShaderModule(device_, shader, nullptr);
+VkFramebuffer VulkanRHI::createFrameBuffer(const FrameBufferCreateInfo& create_info) {
+    VkFramebufferCreateInfo framebufferInfo{};
+    framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    framebufferInfo.renderPass = create_info.render_pass;
+    framebufferInfo.attachmentCount = create_info.attachment_count;
+    framebufferInfo.pAttachments = create_info.attachments;
+    framebufferInfo.width = create_info.width;
+    framebufferInfo.height = create_info.height;
+    framebufferInfo.layers = 1;
+
+    VkFramebuffer frame_buffer;
+    if (vkCreateFramebuffer(device_, &framebufferInfo, nullptr, &frame_buffer) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create framebuffer!");
+    }
+    return frame_buffer;
+}
+
+SwapChainDesc VulkanRHI::getSwapChainDesc() const {
+    return SwapChainDesc{
+        .extent = swapchain_extent_,
+        .image_format = swapchain_image_format_,
+        .image_views = swapchain_imageviews_,
+    };
 }
 
 void VulkanRHI::destroy() {
