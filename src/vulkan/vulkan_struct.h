@@ -12,7 +12,12 @@ struct PipelineCreateInfo {
     VkRenderPass render_pass;
 };
 
-struct RenderPassCreateInfo {};
+struct RenderPassCreateInfo {
+    VkRenderPass render_pass;
+    VkPipeline pipeline;
+    VkFramebuffer frame_buffer;
+    VkExtent2D extent;
+};
 
 struct FrameBufferCreateInfo {
     VkImageView* attachments;

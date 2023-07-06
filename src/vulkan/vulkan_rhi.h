@@ -53,6 +53,8 @@ public:
 
     VkFramebuffer createFrameBuffer(const FrameBufferCreateInfo& create_info);
 
+    void recordCommandBuffer(VkCommandBuffer commandBuffer, const RenderPassCreateInfo& create_info);
+
 private:
     void createInstance();
     void setupDebugMessenger();
@@ -61,6 +63,8 @@ private:
     void createLogicDevice();
     void createSwapChain();
     void createImageViews();
+    void createCommandPool();
+    void createCommandBuffer();
 
     std::vector<const char*> getRequiredExtensions() const;
 
@@ -89,6 +93,9 @@ private:
     VkFormat swapchain_image_format_{};
     VkExtent2D swapchain_extent_{};
     std::vector<VkImageView> swapchain_imageviews_;
+
+    VkCommandPool command_pool_;
+    VkCommandBuffer command_buffer_;
 
     bool enable_validation_layers_{false};
 };
