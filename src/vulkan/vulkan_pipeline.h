@@ -5,18 +5,19 @@
 #include <string>
 
 namespace DDF {
-struct PipelineCreateInfo {
-    std::string vert_spv;
-    std::string frag_spv;
-};
-
 class VulkanPipeline {
 public:
-    VulkanPipeline();
+    VulkanPipeline() = default;
+    VulkanPipeline(VkDevice device, VkPipeline pipeline, VkPipelineLayout layout);
+
+    VulkanPipeline(const VulkanPipeline&) = delete;
+    VulkanPipeline(VulkanPipeline&&) = delete;
+
     ~VulkanPipeline();
 
 private:
-    VkPipelineLayout pipeline_layout_;
-    VkPipeline pipeline_;
+    VkDevice device_{nullptr};
+    VkPipeline pipeline_{nullptr};
+    VkPipelineLayout pipeline_layout_{nullptr};
 };
 } // namespace DDF

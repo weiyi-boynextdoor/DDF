@@ -3,11 +3,13 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
 
 #include "vulkan_pipeline.h"
+#include "vulkan_struct.h"
 
 namespace DDF {
 struct QueueFamilyIndices {
@@ -35,10 +37,16 @@ public:
 
     void destroy();
 
+    VkDevice getDevice() const {
+        return device_;
+    }
+
     VkShaderModule createShaderModule(const std::string& code);
     void destroyShaderModule(VkShaderModule shader);
 
-    VkPipeline createGraphicsPipeline(const PipelineCreateInfo& create_info);
+    std::unique_ptr<VulkanPipeline> createGraphicsPipeline(const PipelineCreateInfo& create_info);
+
+    VkRenderPass createRenderPass(const RenderPassCreateInfo& create_info);
 
 private:
     void createInstance();
