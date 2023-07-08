@@ -1,26 +1,24 @@
 #pragma once
 
-#include "vulkan/vulkan_rhi.h"
-
 #include <memory>
 
 namespace DDF {
+struct Context;
+
 class Engine {
 public:
-    Engine();
+    Engine(Context& context);
 
     ~Engine();
 
-    void init(GLFWwindow* window);
+    void initSystems();
+
+    void destroySystems();
 
     void update() {
     }
 
-    VulkanRHI* getRHI() const {
-        return rhi_.get();
-    }
-
 private:
-    std::unique_ptr<VulkanRHI> rhi_;
+    Context& context_;
 };
 } // namespace DDF

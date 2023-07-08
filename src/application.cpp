@@ -3,21 +3,21 @@
 namespace DDF
 {
 Application::Application(uint32_t width, uint32_t height) : width_(width), height_(height) {
-    engine_ = std::make_unique<Engine>();
 }
 
 void Application::run(SetupCallback setup, CleanupCallback cleanup) {
     initWindow();
-    engine_->init(window_);
+    engine_ = std::make_unique<Engine>(context_);
+    engine_->initSystems();
 
     if (setup) {
-        setup(engine_.get());
+        setup(context_);
     }
 
     mainLoop();
 
     if (cleanup) {
-        cleanup(engine_.get());
+        cleanup(context_);
     }
     cleanUp();
 }
@@ -29,6 +29,7 @@ void Application::initWindow() {
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     window_ = glfwCreateWindow(width_, height_, "Vulkan", nullptr, nullptr);
+    context_.window = window_;
 }
 
 void Application::mainLoop() {

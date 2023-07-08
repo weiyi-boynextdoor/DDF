@@ -11,11 +11,11 @@ int main() {
     VkRenderPass render_pass{};
     std::vector<VkFramebuffer> frame_buffers;
 
-    auto setup = [&](DDF::Engine* engine) {
+    auto setup = [&](DDF::Context& context) {
         auto vert_spv = DDF::readFile("shaders/generated/triangle.vert.spv");
         auto frag_spv = DDF::readFile("shaders/generated/triangle.frag.spv");
 
-        auto* rhi = engine->getRHI();
+        auto& rhi = context.rhi;
         render_pass = rhi->createRenderPass({});
         DDF::PipelineCreateInfo pipeline_info{std::move(vert_spv), std::move(frag_spv), render_pass};
         pipeline = std::move(rhi->createGraphicsPipeline(pipeline_info));
@@ -33,8 +33,8 @@ int main() {
         }
     };
 
-    auto cleanup = [&](DDF::Engine* engine) {
-        auto* rhi = engine->getRHI();
+    auto cleanup = [&](DDF::Context& context) {
+        auto& rhi = context.rhi;
         auto device = rhi->getDevice();
 
         for (auto frame_buffer : frame_buffers) {

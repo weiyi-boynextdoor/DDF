@@ -89,13 +89,17 @@ private:
     VkQueue present_queue_{nullptr};
 
     VkSwapchainKHR swapchain_{nullptr};
-    std::vector<VkImage> swapchain_images_{};
+    std::vector<VkImage> swapchain_images_;
     VkFormat swapchain_image_format_{};
     VkExtent2D swapchain_extent_{};
     std::vector<VkImageView> swapchain_imageviews_;
 
-    VkCommandPool command_pool_;
-    VkCommandBuffer command_buffer_;
+    VkCommandPool command_pool_{nullptr};
+    VkCommandBuffer command_buffer_{nullptr};
+
+    VkSemaphore image_available_semaphore_{nullptr};
+    VkSemaphore render_finished_semaphore_{nullptr};
+    VkFence in_flight_fence_{nullptr};
 
     bool enable_validation_layers_{false};
 };
