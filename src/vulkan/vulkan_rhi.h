@@ -55,6 +55,18 @@ public:
 
     void recordCommandBuffer(VkCommandBuffer commandBuffer, const RenderPassCreateInfo& create_info);
 
+    void beginFrame();
+
+    void submitRender();
+
+    uint32_t getCurFrameBufferIndex() const {
+        return swapchain_cur_index_;
+    }
+
+    VkCommandBuffer getCommandBuffer() const {
+        return command_buffer_;
+    }
+
 private:
     void createInstance();
     void setupDebugMessenger();
@@ -65,6 +77,7 @@ private:
     void createImageViews();
     void createCommandPool();
     void createCommandBuffer();
+    void createSyncObjects();
 
     std::vector<const char*> getRequiredExtensions() const;
 
@@ -93,6 +106,7 @@ private:
     VkFormat swapchain_image_format_{};
     VkExtent2D swapchain_extent_{};
     std::vector<VkImageView> swapchain_imageviews_;
+    uint32_t swapchain_cur_index_{0};
 
     VkCommandPool command_pool_{nullptr};
     VkCommandBuffer command_buffer_{nullptr};

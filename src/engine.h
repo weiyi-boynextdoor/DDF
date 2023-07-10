@@ -11,12 +11,11 @@ public:
 
     ~Engine();
 
-    void initSystems();
+    void init();
 
-    void destroySystems();
+    void destroy();
 
-    void update() {
-    }
+    void update();
 
 private:
     Context& context_;

@@ -16,7 +16,6 @@ struct RenderPassCreateInfo {
     VkRenderPass render_pass;
     VkPipeline pipeline;
     VkFramebuffer frame_buffer;
-    VkExtent2D extent;
 };
 
 struct FrameBufferCreateInfo {

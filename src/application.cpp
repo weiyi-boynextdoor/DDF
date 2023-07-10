@@ -8,7 +8,7 @@ Application::Application(uint32_t width, uint32_t height) : width_(width), heigh
 void Application::run(SetupCallback setup, CleanupCallback cleanup) {
     initWindow();
     engine_ = std::make_unique<Engine>(context_);
-    engine_->initSystems();
+    engine_->init();
 
     if (setup) {
         setup(context_);

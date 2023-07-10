@@ -92,6 +92,7 @@ void VulkanRHI::init(GLFWwindow* window) {
     createImageViews();
     createCommandPool();
     createCommandBuffer();
+    createSyncObjects();
 }
 
 void VulkanRHI::createInstance() {
@@ -470,6 +471,21 @@ void VulkanRHI::createCommandBuffer() {
     }
 }
 
+void VulkanRHI::createSyncObjects() {
+    VkSemaphoreCreateInfo semaphoreInfo{};
+    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    VkFenceCreateInfo fenceInfo{};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+    if (vkCreateSemaphore(device_, &semaphoreInfo, nullptr, &image_available_semaphore_) != VK_SUCCESS ||
+        vkCreateSemaphore(device_, &semaphoreInfo, nullptr, &render_finished_semaphore_) != VK_SUCCESS ||
+        vkCreateFence(device_, &fenceInfo, nullptr, &in_flight_fence_) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create synchronization objects for a frame!");
+    }
+}
+
 std::unique_ptr<VulkanPipeline> VulkanRHI::createGraphicsPipeline(const PipelineCreateInfo& create_info) {
     return std::make_unique<VulkanPipeline>(device_, create_info);
 }
@@ -494,12 +510,22 @@ VkRenderPass VulkanRHI::createRenderPass(const RenderPassCreateInfo& create_info
     subpass.colorAttachmentCount = 1;
     subpass.pColorAttachments = &colorAttachmentRef;
 
+    VkSubpassDependency dependency{};
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass = 0;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.srcAccessMask = 0;
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
     VkRenderPassCreateInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     renderPassInfo.attachmentCount = 1;
     renderPassInfo.pAttachments = &colorAttachment;
     renderPassInfo.subpassCount = 1;
     renderPassInfo.pSubpasses = &subpass;
+    renderPassInfo.dependencyCount = 1;
+    renderPassInfo.pDependencies = &dependency;
 
     VkRenderPass pass;
     if (vkCreateRenderPass(device_, &renderPassInfo, nullptr, &pass) != VK_SUCCESS) {
@@ -546,7 +572,7 @@ void VulkanRHI::recordCommandBuffer(VkCommandBuffer commandBuffer, const RenderP
     renderPassInfo.renderPass = create_info.render_pass;
     renderPassInfo.framebuffer = create_info.frame_buffer;
     renderPassInfo.renderArea.offset = {0, 0};
-    renderPassInfo.renderArea.extent = create_info.extent;
+    renderPassInfo.renderArea.extent = swapchain_extent_;
 
     VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
     renderPassInfo.clearValueCount = 1;
@@ -559,15 +585,15 @@ void VulkanRHI::recordCommandBuffer(VkCommandBuffer commandBuffer, const RenderP
     VkViewport viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = (float)create_info.extent.width;
-    viewport.height = (float)create_info.extent.height;
+    viewport.width = (float)swapchain_extent_.width;
+    viewport.height = (float)swapchain_extent_.height;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
     VkRect2D scissor{};
     scissor.offset = {0, 0};
-    scissor.extent = create_info.extent;
+    scissor.extent = swapchain_extent_;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
     vkCmdDraw(commandBuffer, 3, 1, 0, 0);
@@ -579,7 +605,57 @@ void VulkanRHI::recordCommandBuffer(VkCommandBuffer commandBuffer, const RenderP
     }
 }
 
+void VulkanRHI::beginFrame() {
+    vkWaitForFences(device_, 1, &in_flight_fence_, VK_TRUE, UINT64_MAX);
+    vkResetFences(device_, 1, &in_flight_fence_);
+
+    vkAcquireNextImageKHR(
+        device_, swapchain_, UINT64_MAX, image_available_semaphore_, VK_NULL_HANDLE, &swapchain_cur_index_);
+
+    vkResetCommandBuffer(command_buffer_, /*VkCommandBufferResetFlagBits*/ 0);
+}
+
+void VulkanRHI::submitRender() {
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+    VkSemaphore waitSemaphores[] = {image_available_semaphore_};
+    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = waitSemaphores;
+    submitInfo.pWaitDstStageMask = waitStages;
+
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &command_buffer_;
+
+    VkSemaphore signalSemaphores[] = {render_finished_semaphore_};
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = signalSemaphores;
+
+    if (vkQueueSubmit(graphics_queue_, 1, &submitInfo, in_flight_fence_) != VK_SUCCESS) {
+        throw std::runtime_error("failed to submit draw command buffer!");
+    }
+
+    VkPresentInfoKHR presentInfo{};
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = signalSemaphores;
+
+    VkSwapchainKHR swapChains[] = {swapchain_};
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = swapChains;
+
+    presentInfo.pImageIndices = &swapchain_cur_index_;
+
+    vkQueuePresentKHR(present_queue_, &presentInfo);
+}
+
 void VulkanRHI::destroy() {
+    vkDestroySemaphore(device_, image_available_semaphore_, nullptr);
+    vkDestroySemaphore(device_, render_finished_semaphore_, nullptr);
+    vkDestroyFence(device_, in_flight_fence_, nullptr);
+
     vkDestroyCommandPool(device_, command_pool_, nullptr);
 
     for (auto imageview : swapchain_imageviews_) {

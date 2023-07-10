@@ -16,6 +16,10 @@ public:
 
     ~VulkanPipeline();
 
+    VkPipeline getPipeline() const {
+        return pipeline_;
+    }
+
 private:
     VkDevice device_{nullptr};
     VkPipeline pipeline_{nullptr};
