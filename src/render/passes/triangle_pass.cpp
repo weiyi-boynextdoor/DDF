@@ -22,9 +22,9 @@ void TrianglePass::init() {
 }
 
 void TrianglePass::draw() {
-    RenderPassCreateInfo create_info{.render_pass = render_pass_,
-                                     .pipeline = pipeline_->getPipeline(),
-                                     .frame_buffer = frame_buffers_[rhi_->getCurFrameBufferIndex()]};
+    RenderPassCommandInfo create_info{.render_pass = render_pass_,
+                                      .pipeline = pipeline_->getPipeline(),
+                                      .frame_buffer = frame_buffers_[rhi_->getCurFrameBufferIndex()]};
     rhi_->recordCommandBuffer(rhi_->getCommandBuffer(), create_info);
 }
 

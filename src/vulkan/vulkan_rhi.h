@@ -53,7 +53,7 @@ public:
 
     VkFramebuffer createFrameBuffer(const FrameBufferCreateInfo& create_info);
 
-    void recordCommandBuffer(VkCommandBuffer commandBuffer, const RenderPassCreateInfo& create_info);
+    void recordCommandBuffer(VkCommandBuffer commandBuffer, const RenderPassCommandInfo& create_info);
 
     void beginFrame();
 
@@ -64,8 +64,10 @@ public:
     }
 
     VkCommandBuffer getCommandBuffer() const {
-        return command_buffer_;
+        return command_buffers_[current_frame_];
     }
+
+    static const int k_max_frames_in_flight = 3;
 
 private:
     void createInstance();
@@ -109,11 +111,12 @@ private:
     uint32_t swapchain_cur_index_{0};
 
     VkCommandPool command_pool_{nullptr};
-    VkCommandBuffer command_buffer_{nullptr};
+    std::vector<VkCommandBuffer> command_buffers_;
 
-    VkSemaphore image_available_semaphore_{nullptr};
-    VkSemaphore render_finished_semaphore_{nullptr};
-    VkFence in_flight_fence_{nullptr};
+    std::vector<VkSemaphore> image_available_semaphores_;
+    std::vector<VkSemaphore> render_finished_semaphores_;
+    std::vector<VkFence> in_flight_fences_;
+    uint32_t current_frame_{0};
 
     bool enable_validation_layers_{false};
 };
