@@ -20,6 +20,8 @@ public:
 
     void render();
 
+    void recreateFrameBuffer();
+
 private:
     VulkanRHI* rhi_;
 

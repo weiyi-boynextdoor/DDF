@@ -22,14 +22,25 @@ void Application::run(SetupCallback setup, CleanupCallback cleanup) {
     cleanUp();
 }
 
+static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
+    auto app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
+    app->onResize();
+}
+
 void Application::initWindow() {
     glfwInit();
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     window_ = glfwCreateWindow(width_, height_, "Vulkan", nullptr, nullptr);
     context_.window = window_;
+
+    glfwSetWindowUserPointer(window_, this);
+    glfwSetFramebufferSizeCallback(window_, framebufferResizeCallback);
+}
+
+void Application::onResize() {
+    context_.rhi->setFrameBufferResized();
 }
 
 void Application::mainLoop() {
@@ -40,6 +51,7 @@ void Application::mainLoop() {
 }
 
 void Application::cleanUp() {
+    engine_->destroy();
     engine_.reset();
 
     glfwDestroyWindow(window_);

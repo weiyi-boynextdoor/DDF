@@ -1,4 +1,4 @@
-#include "vulkan_rhi.h"
+#include <vulkan/vulkan_rhi.h>
 
 #include <algorithm>
 #include <iostream>
@@ -612,18 +612,28 @@ void VulkanRHI::recordCommandBuffer(VkCommandBuffer commandBuffer, const RenderP
     }
 }
 
-void VulkanRHI::beginFrame() {
+bool VulkanRHI::beginFrame() {
     vkWaitForFences(device_, 1, &in_flight_fences_[current_frame_], VK_TRUE, UINT64_MAX);
+
+    VkResult result = vkAcquireNextImageKHR(device_,
+                                            swapchain_,
+                                            UINT64_MAX,
+                                            image_available_semaphores_[current_frame_],
+                                            VK_NULL_HANDLE,
+                                            &swapchain_cur_index_);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        recreateSwapChain();
+        return false;
+    } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+        throw std::runtime_error("failed to acquire swap chain image!");
+    }
+
     vkResetFences(device_, 1, &in_flight_fences_[current_frame_]);
 
-    vkAcquireNextImageKHR(device_,
-                          swapchain_,
-                          UINT64_MAX,
-                          image_available_semaphores_[current_frame_],
-                          VK_NULL_HANDLE,
-                          &swapchain_cur_index_);
-
     vkResetCommandBuffer(command_buffers_[current_frame_], /*VkCommandBufferResetFlagBits*/ 0);
+
+    return true;
 }
 
 void VulkanRHI::submitRender() {
@@ -659,7 +669,14 @@ void VulkanRHI::submitRender() {
 
     presentInfo.pImageIndices = &swapchain_cur_index_;
 
-    vkQueuePresentKHR(present_queue_, &presentInfo);
+    VkResult result = vkQueuePresentKHR(present_queue_, &presentInfo);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || frame_buffer_resized_) {
+        frame_buffer_resized_ = false;
+        recreateSwapChain();
+    } else if (result != VK_SUCCESS) {
+        throw std::runtime_error("failed to present swap chain image!");
+    }
 
     current_frame_ = (current_frame_ + 1) % k_max_frames_in_flight;
 }
@@ -686,5 +703,32 @@ void VulkanRHI::destroy() {
     }
 
     vkDestroyInstance(instance_, nullptr);
+}
+
+void VulkanRHI::cleanupSwapChain() {
+    for (size_t i = 0; i < swapchain_imageviews_.size(); i++) {
+        vkDestroyImageView(device_, swapchain_imageviews_[i], nullptr);
+    }
+
+    vkDestroySwapchainKHR(device_, swapchain_, nullptr);
+}
+
+void VulkanRHI::recreateSwapChain() {
+    int width = 0, height = 0;
+    glfwGetFramebufferSize(window_, &width, &height);
+    while (width == 0 || height == 0) {
+        glfwGetFramebufferSize(window_, &width, &height);
+        glfwWaitEvents();
+    }
+
+    vkDeviceWaitIdle(device_);
+
+    cleanupSwapChain();
+    createSwapChain();
+    createImageViews();
+
+    if (recreate_swapchain_callback_) {
+        recreate_swapchain_callback_();
+    }
 }
 } // namespace DDF

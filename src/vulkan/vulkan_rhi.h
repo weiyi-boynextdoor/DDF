@@ -3,13 +3,14 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
 #include <vector>
 
-#include "vulkan_pipeline.h"
-#include "vulkan_struct.h"
+#include <vulkan/vulkan_pipeline.h>
+#include <vulkan/vulkan_struct.h>
 
 namespace DDF {
 struct QueueFamilyIndices {
@@ -55,9 +56,11 @@ public:
 
     void recordCommandBuffer(VkCommandBuffer commandBuffer, const RenderPassCommandInfo& create_info);
 
-    void beginFrame();
+    bool beginFrame();
 
     void submitRender();
+
+    void recreateSwapChain();
 
     uint32_t getCurFrameBufferIndex() const {
         return swapchain_cur_index_;
@@ -65,6 +68,18 @@ public:
 
     VkCommandBuffer getCommandBuffer() const {
         return command_buffers_[current_frame_];
+    }
+
+    void waitIdle() {
+        vkDeviceWaitIdle(device_);
+    }
+
+    void setRecreateSwapChainCallback(std::function<void()> cb) {
+        recreate_swapchain_callback_ = cb;
+    }
+
+    void setFrameBufferResized() {
+        frame_buffer_resized_ = true;
     }
 
     static const int k_max_frames_in_flight = 3;
@@ -80,6 +95,8 @@ private:
     void createCommandPool();
     void createCommandBuffer();
     void createSyncObjects();
+
+    void cleanupSwapChain();
 
     std::vector<const char*> getRequiredExtensions() const;
 
@@ -117,6 +134,10 @@ private:
     std::vector<VkSemaphore> render_finished_semaphores_;
     std::vector<VkFence> in_flight_fences_;
     uint32_t current_frame_{0};
+
+    bool frame_buffer_resized_{false};
+
+    std::function<void()> recreate_swapchain_callback_;
 
     bool enable_validation_layers_{false};
 };

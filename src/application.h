@@ -26,6 +26,8 @@ public:
 
     void run(SetupCallback setup = nullptr, CleanupCallback cleanup = nullptr);
 
+    void onResize();
+
 private:
     uint32_t width_{1080};
     uint32_t height_{720};
@@ -39,8 +41,6 @@ private:
     void mainLoop();
 
     void cleanUp();
-
-    void createInstance();
 };
 
 } // namespace DDF

@@ -15,8 +15,13 @@ void Renderer::destroy() {
 }
 
 void Renderer::render() {
-    rhi_->beginFrame();
-    triangle_pass_->draw();
-    rhi_->submitRender();
+    if (rhi_->beginFrame()) {
+        triangle_pass_->draw();
+        rhi_->submitRender();
+    }
+}
+
+void Renderer::recreateFrameBuffer() {
+    triangle_pass_->recreateFrameBuffer();
 }
 } // namespace DDF

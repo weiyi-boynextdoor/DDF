@@ -17,6 +17,8 @@ public:
 
     void destroy() override;
 
+    void recreateFrameBuffer();
+
 protected:
     std::unique_ptr<DDF::VulkanPipeline> pipeline_;
     VkRenderPass render_pass_{};

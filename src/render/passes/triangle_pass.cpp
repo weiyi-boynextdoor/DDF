@@ -38,4 +38,23 @@ void TrianglePass::destroy() {
     pipeline_.reset();
     vkDestroyRenderPass(device, render_pass_, nullptr);
 }
+
+void TrianglePass::recreateFrameBuffer() {
+    auto device = rhi_->getDevice();
+
+    for (auto frame_buffer : frame_buffers_) {
+        vkDestroyFramebuffer(device, frame_buffer, nullptr);
+    }
+
+    auto swapchain_desc = rhi_->getSwapChainDesc();
+    for (size_t i = 0; i < swapchain_desc.image_views.size(); ++i) {
+        DDF::FrameBufferCreateInfo create_info{};
+        create_info.attachments = &swapchain_desc.image_views[i];
+        create_info.attachment_count = 1;
+        create_info.width = swapchain_desc.extent.width;
+        create_info.height = swapchain_desc.extent.height;
+        create_info.render_pass = render_pass_;
+        frame_buffers_[i] = rhi_->createFrameBuffer(create_info);
+    }
+}
 } // namespace DDF
