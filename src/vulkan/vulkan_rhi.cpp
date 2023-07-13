@@ -603,6 +603,10 @@ void VulkanRHI::recordCommandBuffer(VkCommandBuffer commandBuffer, const RenderP
     scissor.extent = swapchain_extent_;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+    VkBuffer vertexBuffers[] = {create_info.vertex_buffer};
+    VkDeviceSize offsets[] = {0};
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
     vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 
     vkCmdEndRenderPass(commandBuffer);

@@ -38,6 +38,10 @@ public:
 
     void destroy();
 
+    VkPhysicalDevice getPhysicalDevice() const {
+        return physical_device_;
+    }
+
     VkDevice getDevice() const {
         return device_;
     }

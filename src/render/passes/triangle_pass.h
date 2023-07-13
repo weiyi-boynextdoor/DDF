@@ -8,8 +8,7 @@
 namespace DDF {
 class TrianglePass : public RenderPass {
 public:
-    TrianglePass(VulkanRHI* rhi) : RenderPass(rhi) {
-    }
+    TrianglePass(VulkanRHI* rhi);
 
     void init() override;
 
@@ -19,9 +18,18 @@ public:
 
     void recreateFrameBuffer();
 
-protected:
+private:
+    void createVertexBuffer();
+
+    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+
+private:
     std::unique_ptr<DDF::VulkanPipeline> pipeline_;
     VkRenderPass render_pass_{};
     std::vector<VkFramebuffer> frame_buffers_;
+
+    VkBuffer vertex_buffer_;
+    VkDeviceMemory vertex_buffer_memory_;
+    std::vector<Vertex> vertices_;
 };
 } // namespace DDF

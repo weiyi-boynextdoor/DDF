@@ -6,7 +6,7 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "./*.cpp")
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${HEADERS} ${SOURCES})
 
 add_library(${TARGET} ${SOURCES} ${HEADERS})
-target_link_libraries(${TARGET} Vulkan::Vulkan glfw)
+target_link_libraries(${TARGET} Vulkan::Vulkan glfw glm::glm)
 target_include_directories(
   ${TARGET} 
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
