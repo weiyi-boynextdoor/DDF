@@ -5,12 +5,16 @@
 
 namespace DDF {
 TrianglePass::TrianglePass(VulkanRHI* rhi) : RenderPass(rhi) {
-    vertices_ = {
-        {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}}, {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}, {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}}};
+    vertices_ = {{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+                 {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+                 {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+                 {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}};
+    indices_ = {0, 2, 1, 2, 0, 3};
 }
 
 void TrianglePass::init() {
     createVertexBuffer();
+    createIndexBuffer();
 
     auto vert_spv = DDF::readFile("shaders/generated/triangle.vert.spv");
     auto frag_spv = DDF::readFile("shaders/generated/triangle.frag.spv");
@@ -71,16 +75,51 @@ void TrianglePass::createVertexBuffer() {
     vkFreeMemory(device, stagingBufferMemory, nullptr);
 }
 
+void TrianglePass::createIndexBuffer() {
+    auto device = rhi_->getDevice();
+
+    VkDeviceSize bufferSize = sizeof(indices_[0]) * indices_.size();
+
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    rhi_->createBuffer(bufferSize,
+                       VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                       stagingBuffer,
+                       stagingBufferMemory);
+
+    void* data;
+    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, indices_.data(), (size_t)bufferSize);
+    vkUnmapMemory(device, stagingBufferMemory);
+
+    rhi_->createBuffer(bufferSize,
+                       VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                       index_buffer_,
+                       index_buffer_memory_);
+
+    rhi_->copyBuffer(stagingBuffer, index_buffer_, bufferSize);
+
+    vkDestroyBuffer(device, stagingBuffer, nullptr);
+    vkFreeMemory(device, stagingBufferMemory, nullptr);
+}
+
 void TrianglePass::draw() {
     RenderPassCommandInfo create_info{.render_pass = render_pass_,
                                       .pipeline = pipeline_->getPipeline(),
                                       .frame_buffer = frame_buffers_[rhi_->getCurFrameBufferIndex()],
-                                      .vertex_buffer = vertex_buffer_};
+                                      .vertex_buffer = vertex_buffer_,
+                                      .index_buffer = index_buffer_,
+                                      .index_size = (uint32_t)indices_.size()};
     rhi_->recordCommandBuffer(rhi_->getCommandBuffer(), create_info);
 }
 
 void TrianglePass::destroy() {
     auto device = rhi_->getDevice();
+
+    vkDestroyBuffer(device, index_buffer_, nullptr);
+    vkFreeMemory(device, index_buffer_memory_, nullptr);
 
     vkDestroyBuffer(device, vertex_buffer_, nullptr);
     vkFreeMemory(device, vertex_buffer_memory_, nullptr);

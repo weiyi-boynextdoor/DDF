@@ -21,6 +21,8 @@ public:
 private:
     void createVertexBuffer();
 
+    void createIndexBuffer();
+
 private:
     std::unique_ptr<DDF::VulkanPipeline> pipeline_;
     VkRenderPass render_pass_{};
@@ -29,5 +31,9 @@ private:
     VkBuffer vertex_buffer_;
     VkDeviceMemory vertex_buffer_memory_;
     std::vector<Vertex> vertices_;
+
+    VkBuffer index_buffer_;
+    VkDeviceMemory index_buffer_memory_;
+    std::vector<uint16_t> indices_;
 };
 } // namespace DDF

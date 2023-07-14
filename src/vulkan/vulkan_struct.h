@@ -25,6 +25,8 @@ struct RenderPassCommandInfo {
     VkPipeline pipeline;
     VkFramebuffer frame_buffer;
     VkBuffer vertex_buffer;
+    VkBuffer index_buffer;
+    uint32_t index_size;
 };
 
 struct FrameBufferCreateInfo {

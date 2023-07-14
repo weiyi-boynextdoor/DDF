@@ -607,7 +607,9 @@ void VulkanRHI::recordCommandBuffer(VkCommandBuffer commandBuffer, const RenderP
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-    vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+    vkCmdBindIndexBuffer(commandBuffer, create_info.index_buffer, 0, VK_INDEX_TYPE_UINT16);
+
+    vkCmdDrawIndexed(commandBuffer, create_info.index_size, 1, 0, 0, 0);
 
     vkCmdEndRenderPass(commandBuffer);
 
