@@ -21,8 +21,6 @@ public:
 private:
     void createVertexBuffer();
 
-    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-
 private:
     std::unique_ptr<DDF::VulkanPipeline> pipeline_;
     VkRenderPass render_pass_{};
